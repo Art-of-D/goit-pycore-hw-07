@@ -1,5 +1,6 @@
-from .errorhandler import input_error
 from collections import UserDict
+from .errorhandler import input_error
+from .birthday import Birthday
 
 class AddressBook(UserDict):
         
@@ -60,3 +61,31 @@ class AddressBook(UserDict):
     def delete_phone(self, name, old_phone):
         contact = self.find(name)
         return contact.delete_contact_phone(old_phone)
+    
+    @input_error
+    def add_birthday(self, name, date):
+        contact = self.find(name)
+        contact.set_birthday(date)
+        self.data[name.casefold()] = contact
+        return f"Birthday for contact {contact.get_name()} set to {date}."
+        
+
+    @input_error
+    def show_birthday(self, name):
+        if not name:
+            raise ValueError("Name cannot be empty.")
+        
+        contact = self.find(name)
+        if not contact:
+            raise KeyError(f"Contact '{name}' not found.")
+        
+        birthday = contact.get_birthday()
+        if birthday is None:
+            return f"Birthday for contact '{name}' is not set."
+        
+        return birthday
+
+    @input_error
+    def birthdays(self):
+        return Birthday.get_upcoming_birthdays(users=self.data)
+

@@ -6,18 +6,21 @@ def load_contacts():
     try:
         with open("./assistant/storage/phonebook.txt", "r") as file:
             for line in file:
-                name, *phones = line.strip().split(",")
-                name = name.strip()
-                phones = [phone.strip() for phone in phones if phone.strip()]
-                
+                fields = line.strip().split(",")
+                if len(fields) < 3:
+                    print("Skipping invalid contact: {}".format(line))
+                    continue
+                name = fields[0].strip()
+                phones = [field.strip() for field in fields[1:-1] if field.strip()]
+                birthday = fields[-1].strip()
                 contact = Record(name)
                 for phone in phones:
                     try:
                         contact.add_phone(phone)
                     except ValueError as e:
                         print(f"Skipping invalid phone '{phone}': {e}")
-                
-                print(f"Final contact: {contact.get_name()}, Phones: {[p.get_value() for p in contact.get_phones()]}")
+                if birthday != "None":
+                    contact.set_birthday(birthday)
                 contacts.add_record(contact)
             return contacts
     except FileNotFoundError:
@@ -31,7 +34,7 @@ def record_contacts(contacts):
         if len(contacts) == 0:
             print("No contacts to save.")
             return
-        records = "\n".join(f"{value.get_name()}, {', '.join(phone.get_value() for phone in value.get_phones())}" for key, value in contacts.items())
+        records = "\n".join(f"{value.get_name()}, {', '.join(phone.get_value() for phone in value.get_phones())}, {value.get_birthday()}" for key, value in contacts.items())
         file.write(records)
     except Exception as e:
         print(f"Error saving contacts: {e}")
@@ -80,6 +83,12 @@ def main():
             print(ab.find(args[0]))
         elif command == "phone":
             print(ab.find_phone(args[0]))
+        elif command == "add-birthday":
+            print(ab.add_birthday(args[0], args[1]))
+        elif command == "show-birthday":
+            print(ab.show_birthday(args[0]))
+        elif command == "birthdays":
+            print(ab.birthdays())
         elif command == "commands":
             print("Available commands: hello, add, change, delete, all, find - for name search, phone - for the phone search, remove, close OR exit")
         else:
@@ -87,45 +96,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-book = AddressBook()
-
-# Створення запису для John
-john_record = Record("John")
-john_record.add_phone("1234567890")
-john_record.add_phone("5555555555")
-
-john_record.delete_contact_phone("5555555555")
-print(1, john_record)
-
-# Додавання запису John до адресної книги
-book.add_record(john_record)
-
-# Створення та додавання нового запису для Jane
-jane_record = Record("Jane")
-jane_record.add_phone("9876543210")
-book.add_record(jane_record)
-
-# Виведення всіх записів у книзі
-print("Всі записи у книзі:")
-for name, record in book.data.items():
-    print(record)
-
-# Знаходження телефону для John
-john = book.find("John")
-print("Found:", john)
-# Редагування телефону для John
-book.edit_phone("John", "1234567890", "5555555555")
-print("After editing:",john)  # Виведення: Contact name: John, phones: 5555555555
-
-# Пошук конкретного телефону у записі John
-found_phone = book.find_phone("5555555555")
-print(f"Found phone: {found_phone}")  # Виведення: 5555555555
-
-# Видалення запису Jane
-book.delete("Jane")
-
-# Виведення всіх записів у книзі
-print("Всі записи у книзі:")
-for name, record in book.data.items():
-    print(record)

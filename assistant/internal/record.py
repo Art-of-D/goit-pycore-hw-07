@@ -1,17 +1,27 @@
 from .name import Name
 from .phone import Phone
+from .birthday import Birthday
 from .errorhandler import input_error
 
 class Record():
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
+        self.birthday = None
 
     def get_name(self):
         return self.name
     
     def get_phones(self):
         return self.phones
+    
+    @input_error
+    def get_birthday(self):
+        try:
+            date = self.birthday.get_value()
+            return date
+        except AttributeError:
+            return None
     
     @input_error
     def add_phone(self, phone):
@@ -37,6 +47,17 @@ class Record():
                 self.phones.remove(phone)
                 break
         return f"Phone number {old_phone} deleted for contact {self.name}."
+    
+    @input_error
+    def set_birthday(self, date):
+        try:
+            birthday = Birthday(date)
+            self.birthday = birthday
+            return f"Birthday for contact {self.name} set to {date}."
+        except ValueError as e:
+            return f"Invalid birthday: {e}"
+
+        
 
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
